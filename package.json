@@ -1,0 +1,300 @@
+{
+  "name": "adb-toolkit",
+  "displayName": "ADB Toolkit",
+  "description": "Android Debug Bridge shortcuts: server, devices, apps, files, and logcat from VS Code.",
+  "version": "1.0.1",
+  "publisher": "anonimeact",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "android",
+    "adb",
+    "debug",
+    "mobile"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "adbToolkit.killServer",
+        "title": "ADB: Kill Server",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.startServer",
+        "title": "ADB: Start Server",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.restartServer",
+        "title": "ADB: Restart Server",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.forceKill",
+        "title": "ADB: Force Kill All",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.showVersion",
+        "title": "ADB: Show Version",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.pair",
+        "title": "ADB: Pair",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.connect",
+        "title": "ADB: Connect",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.disconnect",
+        "title": "ADB: Disconnect",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.disconnectAll",
+        "title": "ADB: Disconnect All",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.listDevices",
+        "title": "ADB: List Devices",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.selectDevice",
+        "title": "ADB: Select Active Device",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.reconnect",
+        "title": "ADB: Reconnect",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.enableTcpIp",
+        "title": "ADB: Enable TCP/IP",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.switchUsb",
+        "title": "ADB: Switch to USB",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.mdnsDiscover",
+        "title": "ADB: Discover Devices (mDNS)",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.waitForDevice",
+        "title": "ADB: Wait for Device",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.getState",
+        "title": "ADB: Get State",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.copyDeviceIp",
+        "title": "ADB: Copy Device IP",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.reboot",
+        "title": "ADB: Reboot",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.rebootRecovery",
+        "title": "ADB: Reboot to Recovery",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.rebootBootloader",
+        "title": "ADB: Reboot to Bootloader",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.installApk",
+        "title": "ADB: Install APK",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.uninstallApp",
+        "title": "ADB: Uninstall App",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.listPackages",
+        "title": "ADB: List Packages",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.clearAppData",
+        "title": "ADB: Clear App Data",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.forceStopApp",
+        "title": "ADB: Force Stop App",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.launchApp",
+        "title": "ADB: Launch App",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.restartApp",
+        "title": "ADB: Restart App",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.grantPermission",
+        "title": "ADB: Grant Permission",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.revokePermission",
+        "title": "ADB: Revoke Permission",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.extractApk",
+        "title": "ADB: Extract APK",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.openUrl",
+        "title": "ADB: Open URL / Deep Link",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.pushFile",
+        "title": "ADB: Push File",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.pullFile",
+        "title": "ADB: Pull File",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.logcat",
+        "title": "ADB: Logcat",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.clearLogcat",
+        "title": "ADB: Clear Logcat",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.screenshot",
+        "title": "ADB: Screenshot",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.screenRecord",
+        "title": "ADB: Screen Record",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.bugreport",
+        "title": "ADB: Bugreport",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.batteryInfo",
+        "title": "ADB: Battery Info",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.deviceInfo",
+        "title": "ADB: Device Info",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.showActions",
+        "title": "ADB: Show All Actions",
+        "category": "ADB Toolkit"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "adbToolkit.installApk",
+          "when": "resourceExtname == .apk",
+          "group": "adbToolkit@1"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ADB Toolkit",
+      "properties": {
+        "adbToolkit.adbPath": {
+          "type": "string",
+          "default": "adb",
+          "description": "Path to the adb executable (adb, adb.exe, or full path to platform-tools)."
+        },
+        "adbToolkit.defaultPort": {
+          "type": "number",
+          "default": 5555,
+          "description": "Default TCP port for adb tcpip and connect hints."
+        },
+        "adbToolkit.logcatDefaultFilter": {
+          "type": "string",
+          "default": "",
+          "description": "Optional default logcat filter appended to adb logcat in the integrated terminal."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && node esbuild.js --production",
+    "pretest": "npm run compile",
+    "test": "npm run test:unit",
+    "test:unit": "tsx --test src/test/**/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.17.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.25.0",
+    "mocha": "^11.0.0",
+    "npm-run-all": "^4.1.5",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anonimeact/adb-toolkit"
+  }
+}
