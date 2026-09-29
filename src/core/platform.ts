@@ -11,6 +11,14 @@ export function resolveAdbExecutable(configured: string): string {
   return process.platform === "win32" ? "adb.exe" : "adb";
 }
 
+export function resolveScrcpyExecutable(configured: string): string {
+  const trimmed = configured.trim();
+  if (trimmed !== "scrcpy") {
+    return trimmed;
+  }
+  return process.platform === "win32" ? "scrcpy.exe" : "scrcpy";
+}
+
 /** Quote path for integrated terminal one-liner (spaces on Windows). */
 export function quoteForTerminal(path: string): string {
   if (/[\s"]/u.test(path)) {

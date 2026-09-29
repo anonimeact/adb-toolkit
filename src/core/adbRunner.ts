@@ -136,4 +136,14 @@ export class AdbRunner {
       windowsHide: true,
     });
   }
+
+  spawnWithStdout(args: string[], options?: RunOptions): ReturnType<typeof spawn> {
+    const adb = this.resolveExecutable();
+    const fullArgs = this.buildArgs(args, options);
+    logCommand(`adb ${fullArgs.join(" ")} (spawn stdout)`);
+    return spawn(adb, fullArgs, {
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    });
+  }
 }

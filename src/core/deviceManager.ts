@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import type { AdbDevice } from "../types";
 import type { AdbRunner } from "./adbRunner";
-import { parseDevicesList, formatDeviceLabel } from "./devicesParser";
+import { parseDevicesList, deviceToQuickPickItem } from "./devicesParser";
 
 const SELECTED_SERIAL_KEY = "adbToolkit.selectedSerial";
 const CONNECTION_HISTORY_KEY = "adbToolkit.connectionHistory";
@@ -10,6 +10,8 @@ const MAX_HISTORY = 10;
 export class DeviceManager {
   private statusBar: vscode.StatusBarItem;
   private adb: AdbRunner;
+  private readonly _onDidChangeDevices = new vscode.EventEmitter<void>();
+  readonly onDidChangeDevices = this._onDidChangeDevices.event;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -36,6 +38,17 @@ export class DeviceManager {
   async setSelectedSerial(serial: string): Promise<void> {
     await this.context.globalState.update(SELECTED_SERIAL_KEY, serial);
     this.refreshStatusBar();
+    this._onDidChangeDevices.fire();
+  }
+
+  notifyDevicesChanged(): void {
+    this._onDidChangeDevices.fire();
+  }
+
+  async refreshDevices(): Promise<AdbDevice[]> {
+    const devices = await this.listDevices();
+    this._onDidChangeDevices.fire();
+    return devices;
   }
 
   refreshStatusBar(): void {
@@ -72,13 +85,16 @@ export class DeviceManager {
       return usable[0].serial;
     }
 
+    const selected = this.getSelectedSerial();
     const picked = await vscode.window.showQuickPick(
-      usable.map((d) => ({
-        label: formatDeviceLabel(d),
-        description: d.state,
-        serial: d.serial,
-      })),
-      { placeHolder: prompt },
+      usable.map((d) =>
+        deviceToQuickPickItem(d, { selectedSerial: selected }),
+      ),
+      {
+        placeHolder: prompt,
+        matchOnDescription: true,
+        matchOnDetail: true,
+      },
     );
 
     if (!picked) {
@@ -95,7 +111,16 @@ export class DeviceManager {
 
     if (ready.length === 0) {
       if (requireDevice) {
-        vscode.window.showErrorMessage("No device in 'device' state.");
+        if (devices.length > 0) {
+          const summary = devices
+            .map((d) => `${d.serial} (${d.state})`)
+            .join(", ");
+          vscode.window.showErrorMessage(
+            `No device in 'device' state. Connected: ${summary}`,
+          );
+        } else {
+          vscode.window.showErrorMessage("No device in 'device' state.");
+        }
       }
       return undefined;
     }
@@ -110,7 +135,7 @@ export class DeviceManager {
       return ready[0].serial;
     }
 
-    return this.pickDevice("Multiple devices — select one");
+    return this.pickDevice("Select a device to use");
   }
 
   async getConnectionHistory(): Promise<string[]> {

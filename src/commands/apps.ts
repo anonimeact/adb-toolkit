@@ -4,10 +4,20 @@ import {
   confirmDestructive,
   inputPackageName,
   pickPackageFromList,
+  pickPackageListFilter,
 } from "../core/ui";
+import { fetchPackageNames } from "../core/packageList";
 import type { ExtensionContextBundle } from "../types";
 
 const LAST_PACKAGE_KEY = "adbToolkit.lastPackage";
+
+async function listPackagesOnDevice(
+  ctx: ExtensionContextBundle,
+  serial: string,
+  flag: "" | "-3" | "-s",
+): Promise<string[]> {
+  return fetchPackageNames(ctx.adb, serial, flag);
+}
 
 async function resolvePackage(
   ctx: ExtensionContextBundle,
@@ -34,26 +44,11 @@ async function resolvePackage(
     if (!serial) {
       return undefined;
     }
-    const filter = await vscode.window.showQuickPick(
-      [
-        { label: "Third-party (-3)", flag: "-3" },
-        { label: "System (-s)", flag: "-s" },
-        { label: "All", flag: "" },
-      ],
-      { placeHolder: "Package filter" },
-    );
+    const filter = await pickPackageListFilter();
     if (!filter) {
       return undefined;
     }
-    const args = ["shell", "pm", "list", "packages"];
-    if (filter.flag) {
-      args.push(filter.flag);
-    }
-    const out = await ctx.adb.run(args, { serial, timeoutMs: 60000 });
-    const packages = out
-      .split("\n")
-      .map((l) => l.replace(/^package:/, "").trim())
-      .filter(Boolean);
+    const packages = await listPackagesOnDevice(ctx, serial, filter.flag);
     pkg = await pickPackageFromList(packages);
   } else {
     pkg = await inputPackageName();
@@ -114,26 +109,11 @@ export async function listPackages(ctx: ExtensionContextBundle): Promise<void> {
   if (!serial) {
     return;
   }
-  const filter = await vscode.window.showQuickPick(
-    [
-      { label: "Third-party (-3)", flag: "-3" },
-      { label: "System (-s)", flag: "-s" },
-      { label: "All", flag: "" },
-    ],
-    { placeHolder: "Package filter" },
-  );
+  const filter = await pickPackageListFilter();
   if (!filter) {
     return;
   }
-  const args = ["shell", "pm", "list", "packages"];
-  if (filter.flag) {
-    args.push(filter.flag);
-  }
-  const out = await ctx.adb.run(args, { serial, timeoutMs: 60000 });
-  const packages = out
-    .split("\n")
-    .map((l) => l.replace(/^package:/, "").trim())
-    .filter(Boolean);
+  const packages = await listPackagesOnDevice(ctx, serial, filter.flag);
   const doc = await vscode.workspace.openTextDocument({
     content: packages.join("\n"),
     language: "plaintext",

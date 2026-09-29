@@ -1,8 +1,8 @@
 {
   "name": "adb-toolkit",
   "displayName": "ADB Toolkit",
-  "description": "Android Debug Bridge shortcuts: server, devices, apps, files, and logcat from VS Code.",
-  "version": "1.0.1",
+  "description": "ADB in VS Code: device sidebar, logcat terminal/webview, port forwarding, shell, and 40+ adb commands. No telemetry.",
+  "version": "1.2.0",
   "publisher": "anonimeact",
   "engines": {
     "vscode": "^1.85.0"
@@ -231,9 +231,121 @@
         "command": "adbToolkit.showActions",
         "title": "ADB: Show All Actions",
         "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.refreshDevices",
+        "title": "ADB: Refresh Devices",
+        "category": "ADB Toolkit",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "adbToolkit.treeSelectDevice",
+        "title": "ADB: Select Device",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.copyDeviceSerial",
+        "title": "ADB: Copy Device Serial",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.disconnectTreeDevice",
+        "title": "ADB: Disconnect Device",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.logcatChooseViewer",
+        "title": "ADB: Logcat Viewer Setting",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.forwardPort",
+        "title": "ADB: Forward Port",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.reversePort",
+        "title": "ADB: Reverse Port",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.listForwards",
+        "title": "ADB: List Forwards",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.removeAllForwards",
+        "title": "ADB: Remove All Forwards",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.openShell",
+        "title": "ADB: Open Shell",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.runCustomCommand",
+        "title": "ADB: Run Custom Command",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.mirrorScrcpy",
+        "title": "ADB: Mirror with scrcpy",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.scrcpySetupGuide",
+        "title": "ADB: Scrcpy Setup Guide",
+        "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.scrcpyVersion",
+        "title": "ADB: Scrcpy Version",
+        "category": "ADB Toolkit"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "adbToolkit",
+          "title": "ADB Toolkit",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "adbToolkit": [
+        {
+          "id": "adbToolkit.devices",
+          "name": "Devices"
+        }
+      ]
+    },
     "menus": {
+      "view/title": [
+        {
+          "command": "adbToolkit.refreshDevices",
+          "when": "view == adbToolkit.devices",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "adbToolkit.copyDeviceSerial",
+          "when": "view == adbToolkit.devices",
+          "group": "1_copy@1"
+        },
+        {
+          "command": "adbToolkit.disconnectTreeDevice",
+          "when": "view == adbToolkit.devices && viewItem == adbTcpDevice",
+          "group": "2_connection@1"
+        },
+        {
+          "command": "adbToolkit.mirrorScrcpy",
+          "when": "view == adbToolkit.devices && viewItem =~ /adb(Device|TcpDevice)/",
+          "group": "3_mirror@1"
+        }
+      ],
       "explorer/context": [
         {
           "command": "adbToolkit.installApk",
@@ -258,7 +370,29 @@
         "adbToolkit.logcatDefaultFilter": {
           "type": "string",
           "default": "",
-          "description": "Optional default logcat filter appended to adb logcat in the integrated terminal."
+          "description": "Optional extra logcat filter spec (tag, text, or adb logcat args)."
+        },
+        "adbToolkit.logcatViewer": {
+          "type": "string",
+          "enum": ["terminal", "webview"],
+          "default": "terminal",
+          "description": "Where to stream logcat: integrated terminal or webview panel."
+        },
+        "adbToolkit.deviceRefreshIntervalMs": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 0,
+          "description": "Auto-refresh device tree interval in ms (0 disables)."
+        },
+        "adbToolkit.scrcpyPath": {
+          "type": "string",
+          "default": "scrcpy",
+          "description": "Path to the scrcpy executable (install manually — not bundled). See docs/SCRCPY.md in the extension or README."
+        },
+        "adbToolkit.scrcpyExtraArgs": {
+          "type": "string",
+          "default": "",
+          "description": "Extra scrcpy arguments appended to every mirror session (e.g. --no-audio)."
         }
       }
     }

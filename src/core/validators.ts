@@ -26,3 +26,54 @@ export function isValidPackageName(value: string): boolean {
 export function normalizeStdout(text: string): string {
   return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
+
+export function isValidPort(value: string): boolean {
+  const n = Number(value.trim());
+  return Number.isInteger(n) && n >= 1 && n <= 65535;
+}
+
+const GLOBAL_ONLY_COMMANDS = new Set([
+  "kill-server",
+  "start-server",
+  "connect",
+  "disconnect",
+  "pair",
+  "devices",
+  "mdns",
+  "help",
+  "version",
+  "wait-for-device",
+  "reconnect",
+  "usb",
+  "tcpip",
+]);
+
+export function isGlobalOnlyAdbCommand(firstToken: string): boolean {
+  return GLOBAL_ONLY_COMMANDS.has(firstToken.toLowerCase());
+}
+
+/** Split adb args respecting simple double-quoted segments. */
+export function splitAdbArgString(input: string): string[] {
+  const tokens: string[] = [];
+  let current = "";
+  let inQuote = false;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (ch === '"') {
+      inQuote = !inQuote;
+      continue;
+    }
+    if (!inQuote && /\s/.test(ch)) {
+      if (current) {
+        tokens.push(current);
+        current = "";
+      }
+      continue;
+    }
+    current += ch;
+  }
+  if (current) {
+    tokens.push(current);
+  }
+  return tokens;
+}

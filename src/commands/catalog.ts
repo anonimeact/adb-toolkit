@@ -4,6 +4,9 @@ export type CommandGroup =
   | "power"
   | "apps"
   | "files"
+  | "forwarding"
+  | "shell"
+  | "display"
   | "debug"
   | "menu";
 
@@ -23,6 +26,9 @@ export const GROUP_LABELS: Record<CommandGroup, string> = {
   power: "Power & Reboot",
   apps: "Applications",
   files: "Files",
+  forwarding: "Port Forwarding",
+  shell: "Shell & Custom",
+  display: "Display & Mirror",
   debug: "Debug & Log",
   menu: "Menu",
 };
@@ -296,12 +302,76 @@ export const COMMAND_CATALOG: CommandMeta[] = [
     needsDevice: true,
   },
   {
+    id: "adbToolkit.refreshDevices",
+    title: "ADB: Refresh Devices",
+    group: "connection",
+    description: "Reload the Devices sidebar and device list from adb.",
+    detail: "adb devices -l",
+  },
+  {
+    id: "adbToolkit.forwardPort",
+    title: "ADB: Forward Port",
+    group: "forwarding",
+    description: "Forward a host TCP port to a port on the device.",
+    detail: "adb forward tcp:LOCAL tcp:REMOTE",
+    needsDevice: true,
+  },
+  {
+    id: "adbToolkit.reversePort",
+    title: "ADB: Reverse Port",
+    group: "forwarding",
+    description: "Reverse-forward a device TCP port to the host.",
+    detail: "adb reverse tcp:REMOTE tcp:LOCAL",
+    needsDevice: true,
+  },
+  {
+    id: "adbToolkit.listForwards",
+    title: "ADB: List Forwards",
+    group: "forwarding",
+    description: "List active forward and reverse rules for the device.",
+    detail: "adb forward --list",
+    needsDevice: true,
+  },
+  {
+    id: "adbToolkit.removeAllForwards",
+    title: "ADB: Remove All Forwards",
+    group: "forwarding",
+    description: "Remove every port forward rule on the device.",
+    detail: "adb forward --remove-all",
+    needsDevice: true,
+    destructive: true,
+  },
+  {
+    id: "adbToolkit.openShell",
+    title: "ADB: Open Shell",
+    group: "shell",
+    description: "Open an interactive adb shell in the integrated terminal.",
+    detail: "adb shell",
+    needsDevice: true,
+  },
+  {
+    id: "adbToolkit.runCustomCommand",
+    title: "ADB: Run Custom Command",
+    group: "shell",
+    description: "Run arbitrary adb arguments; blocks unsafe global commands unless confirmed.",
+    detail: "adb … (user-supplied args)",
+    needsDevice: true,
+  },
+  {
     id: "adbToolkit.logcat",
     title: "ADB: Logcat",
     group: "debug",
-    description: "Stream system log buffer in an integrated terminal.",
-    detail: "adb logcat [optional filters]",
+    description:
+      "Stream logcat with level/package filters; terminal or webview (setting or per-run).",
+    detail: "adb logcat [--pid=… | *:LEVEL] [filters]",
     needsDevice: true,
+  },
+  {
+    id: "adbToolkit.logcatChooseViewer",
+    title: "ADB: Logcat Viewer Setting",
+    group: "debug",
+    description: "Set default logcat viewer: integrated terminal or webview panel.",
+    detail: "adbToolkit.logcatViewer",
   },
   {
     id: "adbToolkit.clearLogcat",
@@ -351,6 +421,30 @@ export const COMMAND_CATALOG: CommandMeta[] = [
     description: "Show key getprop fields: model, release, SDK, ABI.",
     detail: "adb shell getprop ro.product.* ro.build.version.*",
     needsDevice: true,
+  },
+  {
+    id: "adbToolkit.mirrorScrcpy",
+    title: "ADB: Mirror with scrcpy",
+    group: "display",
+    description:
+      "Mirror the device screen via scrcpy (requires scrcpy installed on your machine — not bundled). Run ADB: Scrcpy Setup Guide if needed.",
+    detail: "scrcpy -s SERIAL [options] in a dedicated terminal tab",
+    needsDevice: true,
+  },
+  {
+    id: "adbToolkit.scrcpySetupGuide",
+    title: "ADB: Scrcpy Setup Guide",
+    group: "display",
+    description:
+      "Open install instructions for scrcpy on macOS, Windows, and Linux (manual install required).",
+    detail: "docs/SCRCPY.md in extension package",
+  },
+  {
+    id: "adbToolkit.scrcpyVersion",
+    title: "ADB: Scrcpy Version",
+    group: "display",
+    description: "Run scrcpy --version to verify scrcpy is installed and on PATH.",
+    detail: "scrcpy --version",
   },
   {
     id: "adbToolkit.showActions",

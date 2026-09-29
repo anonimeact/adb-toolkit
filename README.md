@@ -8,13 +8,14 @@ ADB Toolkit brings common [Android Debug Bridge](https://developer.android.com/t
 
 - VS Code **1.85+**
 - [Android platform-tools](https://developer.android.com/tools/releases/platform-tools) (`adb` on PATH), or set **`adbToolkit.adbPath`**
+- **[scrcpy](https://github.com/Genymobile/scrcpy)** (optional, for screen mirroring only — not bundled). See [docs/SCRCPY.md](docs/SCRCPY.md).
 
 ## Quick start
 
 1. Install the extension.
-2. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`).
+2. Open the **ADB Toolkit** activity bar icon → **Devices** sidebar (or use the status bar).
 3. Run **`ADB: Show All Actions`** to browse commands with technical descriptions.
-4. Click the status bar item **`ADB: …`** to pick the active device (`-s SERIAL`).
+4. Click the status bar item **`ADB: …`** or a device in the sidebar to set the active serial (`-s SERIAL`).
 
 ## Settings
 
@@ -22,23 +23,31 @@ ADB Toolkit brings common [Android Debug Bridge](https://developer.android.com/t
 |---------|---------|-------------|
 | `adbToolkit.adbPath` | `adb` | Path to adb (`adb.exe` on Windows or full path to platform-tools). |
 | `adbToolkit.defaultPort` | `5555` | Port for `adb tcpip` / connect hints. |
-| `adbToolkit.logcatDefaultFilter` | *(empty)* | Extra logcat args appended in the Logcat terminal. |
+| `adbToolkit.logcatDefaultFilter` | *(empty)* | Extra logcat filter tokens (tags, `-s`, etc.). |
+| `adbToolkit.logcatViewer` | `terminal` | Default logcat UI: `terminal` or `webview`. |
+| `adbToolkit.deviceRefreshIntervalMs` | `5000` | Device tree auto-refresh interval (`0` = off). |
+| `adbToolkit.scrcpyPath` | `scrcpy` | Path to scrcpy for mirroring (manual install). |
+| `adbToolkit.scrcpyExtraArgs` | *(empty)* | Extra flags for every scrcpy session (e.g. `--no-audio`). |
 
-## Commands (v1.0)
+### Installing scrcpy
+
+Mirroring requires scrcpy on your system. Full OS-specific steps: **[docs/SCRCPY.md](docs/SCRCPY.md)**. Run **ADB: Scrcpy Setup Guide** from the command palette.
+
+## Devices sidebar (v1.1)
+
+- Lists devices from `adb devices -l`; active device highlighted.
+- Toolbar **Refresh** or **ADB: Refresh Devices**.
+- Right-click: copy serial; disconnect wireless endpoints; **Mirror with scrcpy** (when scrcpy is installed).
+
+## Commands (v1.1)
 
 ### Server
 
-| Command | Summary |
-|---------|---------|
-| ADB: Kill Server | `adb kill-server` |
-| ADB: Start Server | `adb start-server` |
-| ADB: Restart Server | kill + start |
-| ADB: Force Kill All | OS-level kill of adb processes |
-| ADB: Show Version | `adb version` |
+Kill/start/restart server, force-kill host adb, show version.
 
 ### Connection & device
 
-Pair, connect, disconnect, list/select devices, reconnect, TCP/IP, USB, mDNS, wait-for-device, get-state, copy device IP.
+Pair, connect, disconnect, list/select devices, reconnect, TCP/IP, USB, mDNS, wait-for-device, get-state, copy device IP, refresh devices.
 
 ### Power
 
@@ -52,16 +61,32 @@ Install APK (palette or right-click `.apk` in Explorer), uninstall, list package
 
 Push and pull files (local paths use native dialogs—safe for paths with spaces on Windows).
 
+### Port forwarding
+
+Forward, reverse, list forwards, remove all (per device).
+
+### Shell & custom
+
+Open interactive `adb shell` in a terminal; run custom adb arguments (global-only commands require confirmation).
+
+### Display & mirror
+
+**ADB: Mirror with scrcpy** — dedicated terminal tab; optional presets. **ADB: Scrcpy Setup Guide** and **ADB: Scrcpy Version** if you need install help or verification.
+
 ### Debug & log
 
-Logcat (integrated terminal), clear logcat, screenshot, screen record, bugreport, battery info, device info.
+**ADB: Logcat** — choose terminal or webview, then level, optional app list + package (searchable QuickPick), optional tag tokens.
+
+**Webview logcat** — change user/system/all app list and package from the panel (search + Apply); min-level filter; clear; pause/resume stream (new logs only after each start, via `logcat -T`); copy. App name in the tab title when a package is filtered.
+
+Also: clear logcat, screenshot, screen record, bugreport, battery info, device info.
 
 Use **ADB: Show All Actions** for the full catalog with `description` and `detail` lines per command.
 
 ## Multi-device
 
 - One authorized device → used automatically.
-- Several devices → QuickPick (or status bar) sets the active serial for `-s`.
+- Several devices → QuickPick, status bar, or Devices sidebar sets the active serial for `-s`.
 - Global commands (server, connect, pair, `devices`, mDNS) do not use `-s`.
 
 ## Troubleshooting
@@ -85,12 +110,12 @@ Use **ADB: Show All Actions** for the full catalog with `description` and `detai
 ### General
 
 - **adb not found** → set `adbToolkit.adbPath`.
-- **no devices** → USB debugging, authorize RSA prompt, run `ADB: List Devices`.
-- Long operations (logcat, bugreport) run in a terminal or with extended timeouts—watch the **ADB Toolkit** output channel.
+- **no devices** → USB debugging, authorize RSA prompt, run **ADB: Refresh Devices**.
+- Long operations (logcat, bugreport) run in a terminal or webview—watch the **ADB Toolkit** output channel for other commands.
 
-## Roadmap (v1.1+)
+## Roadmap
 
-Port forwarding (reverse/forward), input/display helpers, root/remount/custom command, devices TreeView. See [CHANGELOG.md](CHANGELOG.md).
+Input helpers, root/remount. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Development
 
@@ -99,7 +124,16 @@ npm ci
 npm run compile
 npm run test:unit
 # F5 → Run Extension
-npm run package   # produces .vsix with vsce
+npx @vscode/vsce package   # → adb-toolkit-1.2.0.vsix
+```
+
+### Publish (maintainers)
+
+```bash
+npm run compile
+npx @vscode/vsce package
+# Extensions: Install from VSIX… (local test)
+# npx @vscode/vsce publish   # when marketplace token is configured
 ```
 
 ## License

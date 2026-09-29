@@ -12,6 +12,9 @@ const GROUP_ORDER: CommandGroup[] = [
   "power",
   "apps",
   "files",
+  "forwarding",
+  "shell",
+  "display",
   "debug",
 ];
 

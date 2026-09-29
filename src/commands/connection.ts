@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { formatDeviceLabel } from "../core/devicesParser";
+import { deviceToQuickPickItem } from "../core/devicesParser";
 import { inputHostPort } from "../core/ui";
 import { getMetaById } from "./catalog";
 import type { ExtensionContextBundle } from "../types";
@@ -52,8 +52,7 @@ export async function connect(ctx: ExtensionContextBundle): Promise<void> {
     logDetail: meta?.detail,
   });
   await ctx.devices.pushConnectionHistory(hostPort);
-  await ctx.devices.listDevices();
-  ctx.devices.refreshStatusBar();
+  await ctx.devices.refreshDevices();
   vscode.window.showInformationMessage(`Connected to ${hostPort}`);
 }
 
@@ -91,17 +90,19 @@ export async function listDevices(ctx: ExtensionContextBundle): Promise<void> {
     vscode.window.showInformationMessage("No devices listed.");
     return;
   }
+  const selected = ctx.devices.getSelectedSerial();
   await vscode.window.showQuickPick(
-    devices.map((d) => ({
-      label: formatDeviceLabel(d),
-      description: d.state,
-    })),
-    { placeHolder: "Connected devices (informational)" },
+    devices.map((d) => deviceToQuickPickItem(d, { selectedSerial: selected })),
+    {
+      placeHolder: "Connected devices (informational)",
+      matchOnDescription: true,
+      matchOnDetail: true,
+    },
   );
 }
 
 export async function selectDevice(ctx: ExtensionContextBundle): Promise<void> {
-  await ctx.devices.pickDevice("Select active device for -s");
+  await ctx.devices.pickDevice("Select a device to use");
 }
 
 export async function reconnect(ctx: ExtensionContextBundle): Promise<void> {

@@ -7,8 +7,13 @@ import * as power from "./power";
 import * as apps from "./apps";
 import * as files from "./files";
 import * as debug from "./debug";
+import * as forwarding from "./forwarding";
+import * as shell from "./shell";
+import * as scrcpy from "./scrcpy";
+import * as devicesView from "./devicesView";
 import { showActions } from "./actionsMenu";
 import { getMetaById } from "./catalog";
+import type { DeviceTreeItem } from "../views/devicesTreeProvider";
 
 type Handler = (
   ctx: ExtensionContextBundle,
@@ -51,12 +56,23 @@ const HANDLERS: Record<string, Handler> = {
   "adbToolkit.pushFile": files.pushFile,
   "adbToolkit.pullFile": files.pullFile,
   "adbToolkit.logcat": debug.logcat,
+  "adbToolkit.logcatChooseViewer": debug.logcatChooseViewer,
   "adbToolkit.clearLogcat": debug.clearLogcat,
   "adbToolkit.screenshot": debug.screenshot,
   "adbToolkit.screenRecord": debug.screenRecord,
   "adbToolkit.bugreport": debug.bugreport,
   "adbToolkit.batteryInfo": debug.batteryInfo,
   "adbToolkit.deviceInfo": debug.deviceInfo,
+  "adbToolkit.refreshDevices": devicesView.refreshDevices,
+  "adbToolkit.forwardPort": forwarding.forwardPort,
+  "adbToolkit.reversePort": forwarding.reversePort,
+  "adbToolkit.listForwards": forwarding.listForwards,
+  "adbToolkit.removeAllForwards": forwarding.removeAllForwards,
+  "adbToolkit.openShell": shell.openShell,
+  "adbToolkit.runCustomCommand": shell.runCustomCommand,
+  "adbToolkit.mirrorScrcpy": (ctx) => scrcpy.mirrorScrcpy(ctx),
+  "adbToolkit.scrcpySetupGuide": scrcpy.scrcpySetupGuide,
+  "adbToolkit.scrcpyVersion": scrcpy.scrcpyVersion,
 };
 
 export function registerAllCommands(
@@ -78,6 +94,9 @@ export function registerAllCommands(
   };
 
   for (const [id, handler] of Object.entries(HANDLERS)) {
+    if (id === "adbToolkit.mirrorScrcpy") {
+      continue;
+    }
     const meta = getMetaById(id);
     context.subscriptions.push(
       vscode.commands.registerCommand(id, (uri?: vscode.Uri) =>
@@ -89,6 +108,32 @@ export function registerAllCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand("adbToolkit.showActions", () =>
       showActions(bundle, (cmdId) => executeId(cmdId)),
+    ),
+    vscode.commands.registerCommand("adbToolkit.treeSelectDevice", (serial?: string) =>
+      runCommand("ADB: Select Device", () =>
+        devicesView.treeSelectDevice(bundle, serial),
+      ),
+    ),
+    vscode.commands.registerCommand(
+      "adbToolkit.copyDeviceSerial",
+      (item?: DeviceTreeItem) =>
+        runCommand("ADB: Copy Device Serial", () =>
+          devicesView.copyDeviceSerial(bundle, item),
+        ),
+    ),
+    vscode.commands.registerCommand(
+      "adbToolkit.disconnectTreeDevice",
+      (item?: DeviceTreeItem) =>
+        runCommand("ADB: Disconnect Device", () =>
+          devicesView.disconnectTreeDevice(bundle, item),
+        ),
+    ),
+    vscode.commands.registerCommand(
+      "adbToolkit.mirrorScrcpy",
+      (item?: DeviceTreeItem) =>
+        runCommand("ADB: Mirror with scrcpy", () =>
+          scrcpy.mirrorScrcpy(bundle, item?.device?.serial),
+        ),
     ),
   );
 }

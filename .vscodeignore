@@ -8,3 +8,4 @@ esbuild.js
 **/.vscode-test.*
 **/tsconfig.json
 **/.github/**
+media/build-icon.py

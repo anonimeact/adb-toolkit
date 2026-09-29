@@ -1,7 +1,13 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { formatLogcatSessionTitle } from "../core/appLabel";
+import {
+  collectLogcatFilters,
+  resolveLogcatViewer,
+} from "../core/logcatFilters";
 import { confirmDestructive } from "../core/ui";
+import { LogcatPanel } from "../views/logcatPanel";
 import type { ExtensionContextBundle } from "../types";
 
 export async function logcat(ctx: ExtensionContextBundle): Promise<void> {
@@ -9,15 +15,65 @@ export async function logcat(ctx: ExtensionContextBundle): Promise<void> {
   if (!serial) {
     return;
   }
-  const filter = vscode.workspace
-    .getConfiguration("adbToolkit")
-    .get<string>("logcatDefaultFilter", "");
-  const extra = filter.trim();
-  const args = extra ? ["logcat", ...extra.split(/\s+/)] : ["logcat"];
-  ctx.adb.openInTerminal(args, {
+
+  const viewer = await resolveLogcatViewer();
+  if (!viewer) {
+    return;
+  }
+
+  const filters = await collectLogcatFilters(ctx.adb, serial);
+  if (!filters) {
+    return;
+  }
+
+  const title = formatLogcatSessionTitle(
     serial,
-    name: `ADB Logcat (${serial})`,
+    filters.packageName,
+    filters.appLabel,
+  );
+
+  if (viewer === "webview") {
+    LogcatPanel.show(ctx.adb, serial, filters.logcatArgs, {
+      packageName: filters.packageName,
+      appLabel: filters.appLabel,
+      title,
+      adbLevel: filters.level,
+      extraTokens: filters.extraTokens,
+      packageListFlag: filters.packageListFlag,
+    });
+    return;
+  }
+
+  ctx.adb.openInTerminal(filters.logcatArgs, {
+    serial,
+    name: title,
   });
+}
+
+export async function logcatChooseViewer(
+  _ctx: ExtensionContextBundle,
+): Promise<void> {
+  const current = vscode.workspace
+    .getConfiguration("adbToolkit")
+    .get<string>("logcatViewer", "terminal");
+  const picked = await vscode.window.showQuickPick(
+    [
+      { label: "Terminal", value: "terminal" },
+      { label: "Webview panel", value: "webview" },
+    ],
+    {
+      placeHolder: `Default logcat viewer (current: ${current})`,
+    },
+  );
+  if (!picked) {
+    return;
+  }
+  await vscode.workspace
+    .getConfiguration("adbToolkit")
+    .update("logcatViewer", picked.value, vscode.ConfigurationTarget.Global);
+  vscode.window.showInformationMessage(
+    `Logcat viewer set to ${picked.value}.`,
+  );
 }
 
 export async function clearLogcat(ctx: ExtensionContextBundle): Promise<void> {
