@@ -1,4 +1,14 @@
 import * as vscode from "vscode";
+import {
+  connectChoiceItem,
+  connectSuggestionItems,
+  connectTabTarget,
+  findConnectSuggestion,
+  resolveConnectChoice,
+  shouldReplaceFieldWithHint,
+  valueForConnectSuggestion,
+  type ConnectSuggestion,
+} from "./connectAddress";
 import { isValidHostPort, isValidPackageName, isValidPort } from "./validators";
 
 export async function confirmDestructive(
@@ -11,6 +21,175 @@ export async function confirmDestructive(
     "Confirm",
   );
   return choice === "Confirm";
+}
+
+const CONNECT_ADDRESS_CONTEXT = "adbToolkit.connectAddressOpen";
+
+let onConnectAddressTab: (() => void) | undefined;
+
+export function acceptConnectAddressTab(): void {
+  onConnectAddressTab?.();
+}
+
+/** Address field with recent endpoints and IP-only rows. Typed host:port is accepted directly. */
+export function pickConnectAddress(
+  history: string[],
+): Promise<string | undefined> {
+  const pick = vscode.window.createQuickPick<ConnectSuggestion>();
+  pick.title = "Connect to device";
+  pick.placeholder = "Type ip:port, for example 192.168.1.10:5555";
+  pick.prompt =
+    "Tab or Enter inserts the highlighted row. Enter again connects when the address is complete.";
+  pick.value = "";
+  pick.items = connectSuggestionItems(history);
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let suppressValueHandler = false;
+    let ignoreActive = false;
+    let valueFromList = false;
+    /** True while the user is typing or clearing the field; list highlight does not overwrite. */
+    let manualEdit = true;
+    let focusedItem: ConnectSuggestion | undefined;
+    const setFullItems = (
+      focus?: Pick<ConnectSuggestion, "entry" | "label">,
+    ) => {
+      pick.items = connectSuggestionItems(history);
+      const match = findConnectSuggestion(pick.items, focus ?? focusedItem);
+      if (match) {
+        pick.activeItems = [match];
+        focusedItem = match;
+      }
+    };
+    const finish = (value: string | undefined) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      onConnectAddressTab = undefined;
+      void vscode.commands.executeCommand(
+        "setContext",
+        CONNECT_ADDRESS_CONTEXT,
+        false,
+      );
+      pick.hide();
+      resolve(value);
+    };
+
+    const writeListValue = (item: ConnectSuggestion) => {
+      suppressValueHandler = true;
+      ignoreActive = true;
+      setFullItems(item);
+      const match = findConnectSuggestion(pick.items, item);
+      if (match) {
+        pick.activeItems = [match];
+        focusedItem = match;
+      }
+      pick.value = valueForConnectSuggestion(item);
+      suppressValueHandler = false;
+      valueFromList = true;
+      manualEdit = false;
+      queueMicrotask(() => {
+        ignoreActive = false;
+      });
+    };
+
+    onConnectAddressTab = () => {
+      const target = connectTabTarget(
+        pick.items,
+        pick.activeItems[0] ?? focusedItem,
+        manualEdit,
+      );
+      if (!target) {
+        return;
+      }
+      const match = findConnectSuggestion(pick.items, target);
+      if (!match) {
+        return;
+      }
+      writeListValue(match);
+    };
+
+    pick.onDidChangeActive((items) => {
+      focusedItem = items[0];
+    });
+
+    pick.onDidChangeSelection((items) => {
+      if (items[0]) {
+        focusedItem = items[0];
+      }
+    });
+
+    pick.onDidChangeValue((value) => {
+      if (suppressValueHandler) {
+        return;
+      }
+      manualEdit = true;
+      valueFromList = false;
+      ignoreActive = true;
+      pick.items = connectSuggestionItems(history, value);
+      queueMicrotask(() => {
+        ignoreActive = false;
+      });
+    });
+
+    const handleAccept = (
+      hinted: ConnectSuggestion | undefined,
+      allItems: readonly ConnectSuggestion[],
+    ) => {
+      if (settled) {
+        return;
+      }
+      const typed = pick.value.trim();
+      if (manualEdit && isValidHostPort(typed)) {
+        finish(typed);
+        return;
+      }
+      const resolvedHint = findConnectSuggestion(allItems, hinted) ?? hinted;
+      if (
+        shouldReplaceFieldWithHint(pick.value, resolvedHint, manualEdit) &&
+        resolvedHint
+      ) {
+        writeListValue(resolvedHint);
+        return;
+      }
+      const chosen = connectChoiceItem(allItems, pick.value, resolvedHint);
+      const choice = resolveConnectChoice(pick.value, chosen, valueFromList);
+      if (choice.type === "connect") {
+        finish(choice.address);
+        return;
+      }
+      if (choice.type === "edit" && chosen) {
+        writeListValue(chosen);
+        return;
+      }
+      if (choice.type === "edit") {
+        suppressValueHandler = true;
+        pick.value = choice.value;
+        suppressValueHandler = false;
+        return;
+      }
+      if (isValidHostPort(typed)) {
+        finish(typed);
+      }
+    };
+
+    pick.onDidAccept(() => {
+      const hinted =
+        pick.selectedItems[0] ?? pick.activeItems[0] ?? focusedItem;
+      const allItems = pick.items;
+      handleAccept(hinted, allItems);
+    });
+
+    pick.onDidHide(() => finish(undefined));
+    void vscode.commands
+      .executeCommand("setContext", CONNECT_ADDRESS_CONTEXT, true)
+      .then(() => {
+        if (!settled) {
+          pick.show();
+        }
+      });
+  });
 }
 
 export async function inputHostPort(

@@ -124,7 +124,7 @@ npm ci
 npm run compile
 npm run test:unit
 # F5 → Run Extension
-npx @vscode/vsce package   # → adb-toolkit-1.2.0.vsix
+npx @vscode/vsce package   # → adb-toolkit-1.2.1.vsix
 ```
 
 ### Publish (maintainers)

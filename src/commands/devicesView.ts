@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { adbStatusMessage } from "../core/adbOutcome";
 import type { DeviceTreeItem } from "../views/devicesTreeProvider";
 import type { ExtensionContextBundle } from "../types";
 
@@ -40,7 +41,9 @@ export async function disconnectTreeDevice(
   if (!serial) {
     return;
   }
-  await ctx.adb.run(["disconnect", serial], { global: true });
+  const out = await ctx.adb.run(["disconnect", serial], { global: true });
   await ctx.devices.refreshDevices();
-  vscode.window.showInformationMessage(`Disconnected ${serial}`);
+  vscode.window.showInformationMessage(
+    adbStatusMessage(out, `Disconnected ${serial}`),
+  );
 }

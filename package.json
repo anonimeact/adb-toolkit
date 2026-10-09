@@ -2,7 +2,7 @@
   "name": "adb-toolkit",
   "displayName": "ADB Toolkit",
   "description": "ADB in VS Code: device sidebar, logcat terminal/webview, port forwarding, shell, and 40+ adb commands. No telemetry.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "anonimeact",
   "engines": {
     "vscode": "^1.85.0"
@@ -302,6 +302,11 @@
         "command": "adbToolkit.scrcpyVersion",
         "title": "ADB: Scrcpy Version",
         "category": "ADB Toolkit"
+      },
+      {
+        "command": "adbToolkit.connectAddressTab",
+        "title": "ADB: Insert Next Connect Address",
+        "category": "ADB Toolkit"
       }
     ],
     "viewsContainers": {
@@ -322,6 +327,12 @@
       ]
     },
     "menus": {
+      "commandPalette": [
+        {
+          "command": "adbToolkit.connectAddressTab",
+          "when": "false"
+        }
+      ],
       "view/title": [
         {
           "command": "adbToolkit.refreshDevices",
@@ -354,6 +365,13 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "adbToolkit.connectAddressTab",
+        "key": "tab",
+        "when": "adbToolkit.connectAddressOpen && (inQuickOpen || inQuickInput)"
+      }
+    ],
     "configuration": {
       "title": "ADB Toolkit",
       "properties": {

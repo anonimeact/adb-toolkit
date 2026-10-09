@@ -1,5 +1,6 @@
 import { execFile, spawn } from "child_process";
 import * as vscode from "vscode";
+import { adbFailureMessage, formatAdbExecError } from "./adbOutcome";
 import { log, logCommand } from "./output";
 import { resolveAdbExecutable, quoteForTerminal } from "./platform";
 
@@ -53,24 +54,35 @@ export class AdbRunner {
           windowsHide: true,
         },
         (err, stdout, stderr) => {
+          const outText = stdout ?? "";
+          const errText = stderr ?? "";
           if (err) {
-            const message = (stderr || err.message || String(err)).trim();
+            const code = (err as NodeJS.ErrnoException).code;
+            if (code === "ENOENT") {
+              const message = `adb not found (${adb}). Install Android platform-tools or set adbToolkit.adbPath.`;
+              log(message);
+              reject(new Error(message));
+              return;
+            }
+            const message = formatAdbExecError(
+              args,
+              outText,
+              errText,
+              err.message || String(err),
+            );
             if (message) {
               log(message);
             }
-            const code = (err as NodeJS.ErrnoException).code;
-            if (code === "ENOENT") {
-              reject(
-                new Error(
-                  `adb not found (${adb}). Install Android platform-tools or set adbToolkit.adbPath.`,
-                ),
-              );
-              return;
-            }
-            reject(new Error(message || err.message));
+            reject(new Error(message));
             return;
           }
-          const out = (stdout + (stderr ? `\n${stderr}` : "")).trim();
+          const out = (outText + (errText ? `\n${errText}` : "")).trim();
+          const failure = adbFailureMessage(args, out);
+          if (failure) {
+            log(failure);
+            reject(new Error(failure));
+            return;
+          }
           if (out) {
             log(out);
           }
@@ -97,10 +109,16 @@ export class AdbRunner {
         },
         (err, stdout, stderr) => {
           if (err) {
-            const message = Buffer.isBuffer(stderr)
+            const errText = Buffer.isBuffer(stderr)
               ? stderr.toString("utf8")
-              : String(stderr || err.message);
-            reject(new Error(message.trim() || err.message));
+              : String(stderr ?? "");
+            const message = formatAdbExecError(
+              args,
+              "",
+              errText,
+              err.message || String(err),
+            );
+            reject(new Error(message));
             return;
           }
           resolve(Buffer.isBuffer(stdout) ? stdout : Buffer.from(stdout));

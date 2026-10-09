@@ -11,6 +11,7 @@ import * as forwarding from "./forwarding";
 import * as shell from "./shell";
 import * as scrcpy from "./scrcpy";
 import * as devicesView from "./devicesView";
+import { acceptConnectAddressTab } from "../core/ui";
 import { showActions } from "./actionsMenu";
 import { getMetaById } from "./catalog";
 import type { DeviceTreeItem } from "../views/devicesTreeProvider";
@@ -109,6 +110,9 @@ export function registerAllCommands(
     vscode.commands.registerCommand("adbToolkit.showActions", () =>
       showActions(bundle, (cmdId) => executeId(cmdId)),
     ),
+    vscode.commands.registerCommand("adbToolkit.connectAddressTab", () => {
+      acceptConnectAddressTab();
+    }),
     vscode.commands.registerCommand("adbToolkit.treeSelectDevice", (serial?: string) =>
       runCommand("ADB: Select Device", () =>
         devicesView.treeSelectDevice(bundle, serial),

@@ -1,5 +1,21 @@
 # Change Log
 
+## 1.2.1
+
+### Connect
+
+- **ADB: Connect** is an address field. Type `ip:port` and press Enter. The extra **Enter new address** row is gone.
+- Recent endpoints stay in that field (newest first, **at most 5**). A sixth address drops the oldest.
+- Each saved host also appears as **IP only**, so a new wireless-debugging port can be typed after the IP (`192.168.18.12:`).
+- Connect, pair, and disconnect success toasts use adb’s own line (`connected to …`, `already connected to …`, `disconnected …`).
+- The connect field starts empty. Typing or clearing is not overwritten by the list. **Tab** inserts the highlighted row (**IP only** → `192.168.18.12:`); after you move with the keyboard, Tab fills that row instead of skipping to the next endpoint. Enter or choosing another row replaces the field; Enter connects when it shows a full address.
+
+### Command results
+
+- A success toast is no longer shown when adb prints a failure and still exits 0. The notification is adb’s text, for example `failed to connect to '192.168.18.12:39029': No route to host`.
+- Covers connect, disconnect, pair, install, uninstall, push, pull, forward, reverse, tcpip, usb, reconnect, and shell helpers (`pm clear` / `grant` / `revoke`, `am start`, `monkey`).
+- When adb exits non-zero, the toast shows adb’s stdout/stderr instead of Node’s `Command failed:` wrapper.
+
 ## 1.2.0
 
 ### Display & mirror (scrcpy)

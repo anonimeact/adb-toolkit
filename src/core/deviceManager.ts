@@ -1,11 +1,14 @@
 import * as vscode from "vscode";
 import type { AdbDevice } from "../types";
 import type { AdbRunner } from "./adbRunner";
+import {
+  CONNECTION_HISTORY_LIMIT,
+  nextConnectionHistory,
+} from "./connectAddress";
 import { parseDevicesList, deviceToQuickPickItem } from "./devicesParser";
 
 const SELECTED_SERIAL_KEY = "adbToolkit.selectedSerial";
 const CONNECTION_HISTORY_KEY = "adbToolkit.connectionHistory";
-const MAX_HISTORY = 10;
 
 export class DeviceManager {
   private statusBar: vscode.StatusBarItem;
@@ -139,17 +142,19 @@ export class DeviceManager {
   }
 
   async getConnectionHistory(): Promise<string[]> {
-    return (
-      this.context.globalState.get<string[]>(CONNECTION_HISTORY_KEY) ?? []
-    );
+    const stored =
+      this.context.globalState.get<string[]>(CONNECTION_HISTORY_KEY) ?? [];
+    const history = stored.slice(0, CONNECTION_HISTORY_LIMIT);
+    if (stored.length > history.length) {
+      await this.context.globalState.update(CONNECTION_HISTORY_KEY, history);
+    }
+    return history;
   }
 
   async pushConnectionHistory(hostPort: string): Promise<void> {
-    const normalized = hostPort.trim();
-    let history = await this.getConnectionHistory();
-    history = [normalized, ...history.filter((h) => h !== normalized)].slice(
-      0,
-      MAX_HISTORY,
+    const history = nextConnectionHistory(
+      await this.getConnectionHistory(),
+      hostPort,
     );
     await this.context.globalState.update(CONNECTION_HISTORY_KEY, history);
   }

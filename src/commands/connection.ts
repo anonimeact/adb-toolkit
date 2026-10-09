@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
+import { adbStatusMessage } from "../core/adbOutcome";
 import { deviceToQuickPickItem } from "../core/devicesParser";
-import { inputHostPort } from "../core/ui";
+import { inputHostPort, pickConnectAddress } from "../core/ui";
 import { getMetaById } from "./catalog";
 import type { ExtensionContextBundle } from "../types";
 
@@ -18,42 +19,32 @@ export async function pair(ctx: ExtensionContextBundle): Promise<void> {
     return;
   }
   const meta = getMetaById("adbToolkit.pair");
-  await ctx.adb.run(["pair", hostPort.trim(), code.trim()], {
+  const out = await ctx.adb.run(["pair", hostPort.trim(), code.trim()], {
     global: true,
     logDetail: meta?.detail,
     timeoutMs: 60000,
   });
-  vscode.window.showInformationMessage(`Paired with ${hostPort}`);
+  vscode.window.showInformationMessage(
+    adbStatusMessage(out, `Paired with ${hostPort}`),
+  );
 }
 
 export async function connect(ctx: ExtensionContextBundle): Promise<void> {
   const history = await ctx.devices.getConnectionHistory();
-  const items = [
-    ...history.map((h) => ({ label: h, description: "Recent" })),
-    { label: "$(add) Enter new address…", description: "" },
-  ];
-  const picked = await vscode.window.showQuickPick(items, {
-    placeHolder: "Connect to host:port",
-  });
-  if (!picked) {
-    return;
-  }
-  let hostPort =
-    picked.label.startsWith("$(add)")
-      ? await inputHostPort("Device ip:port")
-      : picked.label;
+  const hostPort = (await pickConnectAddress(history))?.trim();
   if (!hostPort) {
     return;
   }
-  hostPort = hostPort.trim();
   const meta = getMetaById("adbToolkit.connect");
-  await ctx.adb.run(["connect", hostPort], {
+  await ctx.devices.pushConnectionHistory(hostPort);
+  const out = await ctx.adb.run(["connect", hostPort], {
     global: true,
     logDetail: meta?.detail,
   });
-  await ctx.devices.pushConnectionHistory(hostPort);
   await ctx.devices.refreshDevices();
-  vscode.window.showInformationMessage(`Connected to ${hostPort}`);
+  vscode.window.showInformationMessage(
+    adbStatusMessage(out, `Connected to ${hostPort}`),
+  );
 }
 
 export async function disconnect(ctx: ExtensionContextBundle): Promise<void> {
@@ -64,7 +55,12 @@ export async function disconnect(ctx: ExtensionContextBundle): Promise<void> {
     if (!manual) {
       return;
     }
-    await ctx.adb.run(["disconnect", manual.trim()], { global: true });
+    const out = await ctx.adb.run(["disconnect", manual.trim()], {
+      global: true,
+    });
+    vscode.window.showInformationMessage(
+      adbStatusMessage(out, `Disconnected ${manual.trim()}`),
+    );
     return;
   }
   const picked = await vscode.window.showQuickPick(endpoints, {
@@ -73,15 +69,19 @@ export async function disconnect(ctx: ExtensionContextBundle): Promise<void> {
   if (!picked) {
     return;
   }
-  await ctx.adb.run(["disconnect", picked], { global: true });
-  vscode.window.showInformationMessage(`Disconnected ${picked}`);
+  const out = await ctx.adb.run(["disconnect", picked], { global: true });
+  vscode.window.showInformationMessage(
+    adbStatusMessage(out, `Disconnected ${picked}`),
+  );
 }
 
 export async function disconnectAll(
   ctx: ExtensionContextBundle,
 ): Promise<void> {
-  await ctx.adb.run(["disconnect"], { global: true });
-  vscode.window.showInformationMessage("All TCP connections closed.");
+  const out = await ctx.adb.run(["disconnect"], { global: true });
+  vscode.window.showInformationMessage(
+    adbStatusMessage(out, "All TCP connections closed."),
+  );
 }
 
 export async function listDevices(ctx: ExtensionContextBundle): Promise<void> {
